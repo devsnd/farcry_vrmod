@@ -439,15 +439,21 @@ void VRManager::ProcessRoomscale()
 
 		auto selectedWeapon = m_pGame->GetLocalPlayer()->GetSelectedWeapon();
 		
-		m_pGame->m_pRenderer->DrawBall(rawHandTransform.GetTranslation(), 0.1f);
+		
 		Vec3 weaponOffset = Vec3(0.0f, 0.0f, 0.0f);
 		weaponOffset += rawHandTransform.GetTranslation() - rawHMDTransform.GetTranslation();
-		CryLogAlways("weapon offset %f %f %f", weaponOffset.x, weaponOffset.y, weaponOffset.z);
-		Vec3 centerToHandOffset = Vec3(0.1f, 0.4f, 0.25f);
+		m_pGame->m_pRenderer->DrawBall(m_pGame->m_pRenderer->GetCamera().GetPos() + weaponOffset, 0.1f);
+		
+		Vec3 modelHandToOriginOffset = Vec3(0.2f, 0.55f, -0.2f);
+		m_pGame->m_pRenderer->DrawBall(m_pGame->m_pRenderer->GetCamera().GetPos() + modelHandToOriginOffset, 0.3f);
+
 		Matrix34 reverseHandOffsetMat;
-		reverseHandOffsetMat.SetTranslation(-centerToHandOffset);
+		reverseHandOffsetMat.SetTranslation(modelHandToOriginOffset);
 		reverseHandOffsetMat.CreateRotationXYZ(handAngle);
-		Vec3 finalPos = reverseHandOffsetMat * centerToHandOffset + weaponOffset;
+		Matrix34 reverseCamOffsetMat;
+		reverseCamOffsetMat.SetTranslation(Vec3(0.0f, -1.0f, 0.0f));
+		reverseCamOffsetMat.CreateRotationXYZ(m_pGame->m_pRenderer->GetCamera().GetAngles());
+		Vec3 finalPos = reverseCamOffsetMat * reverseHandOffsetMat * weaponOffset;
 
 		if (selectedWeapon) {
 			selectedWeapon->SetFirstPersonWeaponPos(
