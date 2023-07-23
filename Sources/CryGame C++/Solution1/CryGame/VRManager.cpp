@@ -2,6 +2,7 @@
 #include "VRManager.h"
 #include "Cry_Camera.h"
 #include "xplayer.h"
+#include "WeaponClass.h"
 #include "ComPtr.h"
 #include <vulkan/vulkan.h>
 
@@ -69,7 +70,7 @@ bool VRManager::Init(CXGame *game)
 	m_pGame = game;
 
 	vr::EVRInitError error;
-	vr::VR_Init(&error, vr::VRApplication_Scene);
+	m_system = vr::VR_Init(&error, vr::VRApplication_Scene);
 	if (error != vr::VRInitError_None)
 	{
 		CryError("Failed to initialize OpenVR: %s", vr::VR_GetVRInitErrorAsEnglishDescription(error));
@@ -128,7 +129,8 @@ void VRManager::AwaitFrame()
 		return;
 
 	dxvkLockSubmissionQueue(m_d3d->device.Get(), false);
-	vr::VRCompositor()->WaitGetPoses(&m_headPose, 1, nullptr, 0);
+	vr::VRCompositor()->WaitGetPoses(m_poses, vr::k_unMaxTrackedDeviceCount, nullptr, 0);
+	m_headPose = m_poses[0];
 	dxvkReleaseSubmissionQueue(m_d3d->device.Get());
 
 	UpdateHmdTransform();
@@ -420,10 +422,42 @@ void VRManager::ProcessRoomscale()
 		m_referencePosition = rawHmdTransform.GetTranslation();
 	}
 
-	Ang3 angles;
-	angles.SetAnglesXYZ((Matrix33)m_hmdTransform);
-	m_pGame->GetClient()->TriggerRoomscaleTurn(RAD2DEG(angles.z), RAD2DEG(angles.x));
+	Ang3 hmdAngles;
+	hmdAngles.SetAnglesXYZ((Matrix33)m_hmdTransform);
+	m_pGame->GetClient()->TriggerRoomscaleTurn(RAD2DEG(hmdAngles.z), RAD2DEG(hmdAngles.x));
 	m_referenceYaw = rawAngles.z;
+
+	vr::TrackedDevicePose_t handPose = m_poses[m_system->GetTrackedDeviceIndexForControllerRole(vr::ETrackedControllerRole::TrackedControllerRole_RightHand)];
+	if (handPose.bDeviceIsConnected || handPose.bPoseIsValid) {
+		Matrix34 rawHandTransform = OpenVRToFarCry(handPose.mDeviceToAbsoluteTracking);
+		Matrix34 rawHMDTransform = OpenVRToFarCry(m_poses[0].mDeviceToAbsoluteTracking);
+		Ang3 handAngle;
+		handAngle.SetAnglesXYZ((Matrix33)rawHandTransform);
+		handAngle.x = RAD2DEG(handAngle.x) + 45;
+		handAngle.y = RAD2DEG(handAngle.y);
+		handAngle.z = RAD2DEG(handAngle.z);
+
+		auto selectedWeapon = m_pGame->GetLocalPlayer()->GetSelectedWeapon();
+		
+		m_pGame->m_pRenderer->DrawBall(rawHandTransform.GetTranslation(), 0.1f);
+		Vec3 weaponOffset = Vec3(0.0f, 0.0f, 0.0f);
+		weaponOffset += rawHandTransform.GetTranslation() - rawHMDTransform.GetTranslation();
+		CryLogAlways("weapon offset %f %f %f", weaponOffset.x, weaponOffset.y, weaponOffset.z);
+		Vec3 centerToHandOffset = Vec3(0.1f, 0.4f, 0.25f);
+		Matrix34 reverseHandOffsetMat;
+		reverseHandOffsetMat.SetTranslation(-centerToHandOffset);
+		reverseHandOffsetMat.CreateRotationXYZ(handAngle);
+		Vec3 finalPos = reverseHandOffsetMat * centerToHandOffset + weaponOffset;
+
+		if (selectedWeapon) {
+			selectedWeapon->SetFirstPersonWeaponPos(
+				finalPos,
+				// counteract the camera rotation
+				-m_pGame->m_pRenderer->GetCamera().GetAngles()
+				+ handAngle
+			);
+		}
+	}
 
 	UpdateHmdTransform();
 }
@@ -467,7 +501,7 @@ void VRManager::RegisterCVars()
 {
 	IConsole* console = m_pGame->GetSystem()->GetIConsole();
 	console->Register("vr_yaw_deadzone_angle", &vr_yaw_deadzone_angle, 30, VF_DUMPTODISK, "Controls the deadzone angle in front of the player where weapon aim does not rotate the camera");
-	console->Register("vr_enable_motion_controllers", &vr_enable_motion_controllers, 0, VF_DUMPTODISK, "Enable this to use VR motion controllers instead of keyboard+mouse");
+	console->Register("vr_enable_motion_controllers", &vr_enable_motion_controllers, 1, VF_CHEAT, "Enable this to use VR motion controllers instead of keyboard+mouse");
 	console->Register("vr_render_force_max_terrain_detail", &vr_render_force_max_terrain_detail, 1, VF_DUMPTODISK, "If enabled, will force terrain to render at max detail even in the distance");
 
 	e_terrain_lod_ratio = console->GetCVar("e_terrain_lod_ratio");

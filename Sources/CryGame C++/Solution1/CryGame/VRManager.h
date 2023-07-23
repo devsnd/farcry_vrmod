@@ -6,6 +6,7 @@
 
 class CXGame;
 class IDirect3DDevice9Ex;
+class CWeaponClass;
 
 class VRManager
 {
@@ -41,6 +42,8 @@ private:
 	bool m_inputReady = false;
 	D3DResources* m_d3d = nullptr;
 	vr::TrackedDevicePose_t m_headPose;
+	vr::TrackedDevicePose_t m_poses[vr::k_unMaxTrackedDeviceCount];
+	vr::IVRSystem* m_system;
 	vr::VROverlayHandle_t m_hudOverlay;
 	float m_verticalFov;
 	float m_horizontalFov;

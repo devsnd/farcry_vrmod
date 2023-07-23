@@ -401,7 +401,7 @@ void CWeaponClass::MoveToFirstPersonPos(IEntity *pIEntity)
 	m	=	GetTransposed44(m); //TODO: remove this after E3 and use Matrix34 instead of Matrix44
 
 	m_vPos = m.TransformPointOLD(pos);
-	m_vAngles = pIEntity->GetCamera()->GetAngles()+m_fpvAngleOffset;
+	m_vAngles = pIEntity->GetCamera()->GetAngles()+m_fpvAngleOffset+m_fpvAngles;
 }
 
 //////////////////////////////////////////////////////////////////////
