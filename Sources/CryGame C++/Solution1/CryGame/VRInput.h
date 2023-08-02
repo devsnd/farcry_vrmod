@@ -31,6 +31,7 @@ private:
 	vr::VRActionHandle_t m_moveSprint = vr::k_ulInvalidActionHandle;
 	vr::VRActionHandle_t m_moveJump = vr::k_ulInvalidActionHandle;
 	vr::VRActionHandle_t m_moveCrouch = vr::k_ulInvalidActionHandle;
+	vr::VRActionHandle_t m_moveTeleport = vr::k_ulInvalidActionHandle;
 
 	vr::VRActionHandle_t m_vehiclesSteer = vr::k_ulInvalidActionHandle;
 	vr::VRActionHandle_t m_vehiclesAccelerate = vr::k_ulInvalidActionHandle;

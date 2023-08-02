@@ -86,6 +86,7 @@ public:
 	ICVar* vr_debug_override_rh_angles = nullptr;
 	ICVar* vr_debug_override_lh_offset = nullptr;
 	ICVar* e_terrain_lod_ratio = nullptr;
+	Vec3 m_teleportTargetPos;
 
 private:
 	void RegisterCVars();

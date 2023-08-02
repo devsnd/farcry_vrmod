@@ -51,6 +51,7 @@ bool VRInput::Init(CXGame* game)
 	vr::VRInput()->GetActionHandle("/actions/move/in/sprint", &m_moveSprint);
 	vr::VRInput()->GetActionHandle("/actions/move/in/jump", &m_moveJump);
 	vr::VRInput()->GetActionHandle("/actions/move/in/crouch", &m_moveCrouch);
+	vr::VRInput()->GetActionHandle("/actions/move/in/teleport", &m_moveTeleport);
 
 	vr::VRInput()->GetActionHandle("/actions/vehicles/in/steer", &m_vehiclesSteer);
 	vr::VRInput()->GetActionHandle("/actions/vehicles/in/accelerate", &m_vehiclesAccelerate);
@@ -105,6 +106,7 @@ void VRInput::ProcessInputOnFoot()
 	HandleBooleanAction(m_moveSprint, &CXClient::TriggerRunSprint);
 	HandleBooleanAction(m_moveCrouch, &CXClient::TriggerMoveModeSwitch, false);
 	HandleBooleanAction(m_moveJump, &CXClient::TriggerJump, false);
+	HandleBooleanAction(m_moveTeleport, &CXClient::TriggerTeleport, false);
 	HandleBooleanAction(m_weaponsFire, &CXClient::TriggerFire0);
 	HandleBooleanAction(m_weaponsReload, &CXClient::TriggerReload, false);
 	HandleBooleanAction(m_weaponsNextWeapon, &CXClient::TriggerNextWeapon, false);

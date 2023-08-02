@@ -198,6 +198,7 @@ public:
 	void TriggerMoveBackward(float fValue,XActivationEvent ae);
 	void TriggerMoveFB(float fValue,XActivationEvent ae);
 	void TriggerJump(float fValue,XActivationEvent ae);
+	void TriggerTeleport(float fValue, XActivationEvent ae);
 	void TriggerMoveMode(float fValue,XActivationEvent ae);
 	void TriggerMoveMode2(float fValue,XActivationEvent ae);
 	void TriggerLeanLeft(float fValue,XActivationEvent ae);

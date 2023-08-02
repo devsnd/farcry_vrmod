@@ -248,4 +248,32 @@ void VRRenderer::DrawCrosshair()
 	// for the moment, draw something primitive with the debug tools. Maybe later we can find something more elegant...
 	m_pGame->m_pRenderer->SetState(GS_NODEPTHTEST);
 	m_pGame->m_pRenderer->DrawBall(crosshairPos - dir * 0.06f, 0.06f);
+
+
+	Vec3 viewPos;
+	Vec3 viewAngles;
+	pPlayer->GetFirePosAngles(viewPos, viewAngles);
+	viewAngles.Normalize();
+	ray_hit viewHit;
+	if (physicalWorld->RayWorldIntersection(viewPos, dir * 100.0f, objects, flags, &viewHit, 1, skipPlayer, skipVehicle)) {
+		Vec3 targetPos = viewHit.pt - dir * 0.2f;  // retract a bit from walls, ceilings and floors
+		// move forward to the target pos until we find a position where the player couldnt stand
+		// TODO: this does not work.
+		Vec3 lastValidPos = viewPos;
+		for (int i = 0; i < 10; i++) {
+			Vec3 currentPos = targetPos - ((targetPos - viewPos) / 10.0f * (10.0f - i));
+			ray_hit floorHit;
+			if (physicalWorld->RayWorldIntersection(targetPos, Vec3(0.0f, 0.0f, -100.0f), objects, flags, &floorHit, 1, skipPlayer, skipVehicle)) {
+				if (pPlayer->CanStand(floorHit.pt)) {
+					lastValidPos = floorHit.pt;
+				}
+				else {
+					break;
+				}
+			}
+		}
+		
+		gVR->m_teleportTargetPos = lastValidPos; // writing to global :'(
+		m_pGame->m_pRenderer->DrawBall(lastValidPos, 0.03f);
+	}
 }

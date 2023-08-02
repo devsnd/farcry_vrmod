@@ -1795,6 +1795,23 @@ void CXClient::TriggerJump(float fValue,XActivationEvent ae)
 }
 
 //////////////////////////////////////////////////////////////////////
+void CXClient::TriggerTeleport(float fValue, XActivationEvent ae)
+{
+	IEntity* pEntity = m_pEntitySystem->GetEntity(m_wPlayerID);
+	if (!pEntity) return;
+	
+	IEntityContainer* pContainer = pEntity->GetContainer();
+	if (!pContainer) return;
+
+	CPlayer* pPlayer;
+	pContainer->QueryContainerInterface(CIT_IPLAYER, (void**)&pPlayer);
+	if (!pPlayer) return;
+	
+	auto entity = pPlayer->GetEntity();
+	entity->SetPos(gVR->m_teleportTargetPos);
+}
+
+//////////////////////////////////////////////////////////////////////
 void CXClient::TriggerMoveMode(float fValue,XActivationEvent ae)
 {
 	m_PlayerProcessingCmd.AddAction(ACTION_MOVEMODE);
