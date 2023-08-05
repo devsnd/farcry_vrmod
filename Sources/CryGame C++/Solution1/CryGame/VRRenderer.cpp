@@ -260,16 +260,13 @@ void VRRenderer::DrawCrosshair()
 		// move forward to the target pos until we find a position where the player couldnt stand
 		// TODO: this does not work.
 		Vec3 lastValidPos = viewPos;
-		for (int i = 0; i < 10; i++) {
+		for (int i = 1; i < 11; i++) {
 			Vec3 currentPos = targetPos - ((targetPos - viewPos) / 10.0f * (10.0f - i));
 			ray_hit floorHit;
-			if (physicalWorld->RayWorldIntersection(targetPos, Vec3(0.0f, 0.0f, -100.0f), objects, flags, &floorHit, 1, skipPlayer, skipVehicle)) {
-				if (pPlayer->CanStand(floorHit.pt)) {
-					lastValidPos = floorHit.pt;
-				}
-				else {
+			if (physicalWorld->RayWorldIntersection(currentPos, Vec3(0.0f, 0.0f, -100.0f), objects, flags, &floorHit, 1, skipPlayer, skipVehicle)) {
+				if (!pPlayer->CanStand(floorHit.pt))
 					break;
-				}
+				lastValidPos = floorHit.pt;
 			}
 		}
 		
